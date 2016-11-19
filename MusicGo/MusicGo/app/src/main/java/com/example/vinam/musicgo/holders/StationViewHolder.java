@@ -2,6 +2,7 @@ package com.example.vinam.musicgo.holders;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -62,7 +63,9 @@ public class StationViewHolder extends RecyclerView.ViewHolder {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Bitmap output = BitmapFactory.decodeStream(in);
+
+       Bitmap output =  BitmapFactory.decodeStream(in,new Rect(2,2,2,2),options);
+        //Bitmap output = BitmapFactory.decodeStream(in);
 
 
         return output;

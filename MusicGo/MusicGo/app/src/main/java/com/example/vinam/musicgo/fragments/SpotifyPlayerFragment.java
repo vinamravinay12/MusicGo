@@ -125,6 +125,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
 
             }
         });
+
         song_image_player.setImageBitmap(output);
         return view;
     }
