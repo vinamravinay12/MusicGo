@@ -15,39 +15,13 @@
         android:id="@+id/mood_songs_layout">
 
         <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="@drawable/side_nav_bar"
-        android:layout_margin="10dp"
-        android:padding="5dp"
-            android:id="@+id/my_songs_layout">
-
-        <ImageView
-            android:src="@drawable/headphone_big"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:layout_marginTop="30dp" />
-
-        <TextView
-            android:text="My Songs"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical|center_horizontal"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:paddingTop="10dp"
-            android:textSize="22dp"
-            android:textColor="#ffffff" />
-    </LinearLayout>
-        <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:background="@drawable/side_nav_bar_featured"
             android:layout_margin="10dp"
             android:padding="5dp"
-            android:id="@+id/featured_songs_layout">
+            android:id="@+id/user_playlists_layout">
 
             <ImageView
                 android:src="@drawable/music_player"
@@ -57,7 +31,33 @@
                 android:layout_marginTop="30dp" />
 
             <TextView
-                android:text="Featured Songs"
+                android:text="Your Playlists"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical|center_horizontal"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:paddingTop="10dp"
+                android:textSize="22dp"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="@drawable/side_nav_bar"
+            android:layout_margin="10dp"
+            android:padding="5dp"
+            android:id="@+id/my_songs_layout">
+
+            <ImageView
+                android:src="@drawable/headphone_big"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:layout_marginTop="30dp" />
+
+            <TextView
+                android:text="My Songs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical|center_horizontal"
@@ -72,7 +72,8 @@
             android:layout_height="200dp"
             android:background="@drawable/side_nav_bar_mood"
             android:layout_margin="10dp"
-            android:padding="5dp">
+            android:padding="5dp"
+            android:id="@+id/featured_playlists_layout">
 
             <ImageView
                 android:src="@drawable/sunny"
@@ -82,7 +83,7 @@
                 android:layout_marginTop="30dp" />
 
             <TextView
-                android:text="Mood"
+                android:text="Featured Playlists"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical|center_horizontal"

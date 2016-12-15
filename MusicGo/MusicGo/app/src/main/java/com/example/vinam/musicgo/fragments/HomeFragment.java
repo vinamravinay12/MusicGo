@@ -12,12 +12,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.vinam.musicgo.R;
+import com.example.vinam.musicgo.activities.PlaylistsActivity;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -112,9 +121,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener,Conne
                         AuthenticationResponse.Type.TOKEN,
                         REDIRECT_URI);
                 builder.setScopes(new String[]{"user-read-private", "streaming"});
-                Intent intent = new Intent();
                 AuthenticationRequest request = builder.build();
-
 
                 AuthenticationClient.openLoginActivity(this.getActivity(), REQUEST_CODE, request);
                 //startActivityForResult(intent,REQUEST_CODE);
@@ -124,6 +131,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener,Conne
                 }
 
     }
+
 
     @Override
     public void onLoggedIn() {

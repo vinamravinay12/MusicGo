@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.vinam.musicgo.R;
-import com.example.vinam.musicgo.model.Stations;
+import com.example.vinam.musicgo.model.Playlists;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,28 +21,28 @@ import java.lang.ref.WeakReference;
  * Created by vinam on 11/6/2016.
  */
 
-public class StationViewHolder extends RecyclerView.ViewHolder {
+public class PlaylistViewHolder extends RecyclerView.ViewHolder {
 
-    private TextView songName;
-    private ImageView songImageUri;
-    private  TextView songArtist;
-    public StationViewHolder(View itemView) {
+    private TextView playlistName;
+    private ImageView playlistImageUri;
+        private  TextView playlistOwner;
+    public PlaylistViewHolder(View itemView) {
         super(itemView);
-        this.songImageUri= (ImageView)itemView.findViewById(R.id.song_image);
-        this.songName = (TextView)itemView.findViewById(R.id.song_name);
-        this.songArtist = (TextView)itemView.findViewById(R.id.song_artist);
+        this.playlistImageUri= (ImageView)itemView.findViewById(R.id.playlist_image);
+        this.playlistName = (TextView)itemView.findViewById(R.id.playlist_name);
+        this.playlistOwner = (TextView)itemView.findViewById(R.id.playlist_owner);
     }
 
-    public void updateUI(Stations station){
-        String uri = station.getImageUri();
+    public void updateUI(Playlists playlists){
+        String uri = playlists.getPlaylistImageUrl();
 
         try {
-            DecodeBitMap decodeBitMap = new DecodeBitMap(songImageUri,station);
+            DecodeBitMap decodeBitMap = new DecodeBitMap(playlistImageUri,playlists);
             decodeBitMap.execute();
 
-            songName.setText(station.getSongName());
+            playlistName.setText(playlists.getPlaylistName());
             Log.d("watchdogs","song image " + uri);
-            songArtist.setText(station.getSongArtist());
+
         } catch(Exception e){
             Log.d("MusicGo","exception just generated "+e.getMessage());
         }
@@ -71,7 +71,7 @@ public class StationViewHolder extends RecyclerView.ViewHolder {
 
         output =  BitmapFactory.decodeStream(in,new Rect(-1,-1,-1,-1),options);
         //Bitmap output = BitmapFactory.decodeStream(in);
-
+       // Bitmap scaled = Bitmap.createScaledBitmap(output,170,170,false);
 
         return output;
 
@@ -79,22 +79,22 @@ public class StationViewHolder extends RecyclerView.ViewHolder {
 
 class DecodeBitMap extends AsyncTask<Void,Void,Bitmap> {
     private final WeakReference<ImageView> mImageViewWeakReerence;
-    private Stations stations;
+    private Playlists playlists;
 
-    public DecodeBitMap(ImageView imageView, Stations instaImage) {
+    public DecodeBitMap(ImageView imageView, Playlists instaImage) {
         this.mImageViewWeakReerence = new WeakReference<ImageView>(imageView);
-        this.stations = instaImage;
+        this.playlists = instaImage;
     }
 
     @Override
     protected Bitmap doInBackground(Void... voids) {
-        return decodeUri(stations.getImageUri());
+        return decodeUri(playlists.getPlaylistImageUrl());
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
-        Log.d("ImageBitmap","modified width and height " + bitmap.getWidth()+" :: "+bitmap.getHeight());
+       // Log.d("ImageBitmap","modified width and height " + bitmap.getWidth()+" :: "+bitmap.getHeight());
         final ImageView imgView = mImageViewWeakReerence.get();
         if(imgView != null){
             imgView.setImageBitmap(bitmap);
