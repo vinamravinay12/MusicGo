@@ -1,5 +1,6 @@
 package com.example.vinam.musicgo.Services;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.example.vinam.musicgo.model.Playlists;
@@ -22,8 +23,7 @@ public class DataService  {
     private Map<String,ArrayList<Songs>> featurePlaylistsTracksMap = new TreeMap<String,ArrayList<Songs>>();
     private  ArrayList<Songs>mySongList = new ArrayList<>();
     private  ArrayList<Playlists>featuredPlaylists = new ArrayList<>();
-    private ArrayList<Songs>userPlaylistTracks = new ArrayList<>();
-    private ArrayList<Songs> featurePlaylistTracks = new ArrayList<>();
+
     public static DataService getInstance(){
         return ourInstance;
     }
@@ -47,16 +47,16 @@ public class DataService  {
 
     }
 
-    public void setFeaturedPlaylists(String playlistId, String playlistImageUrl, String playlistName){
-        featuredPlaylists.add(new Playlists(playlistId,playlistImageUrl,playlistName));
+    public void setFeaturedPlaylists(String playlistId, String playlistImageUrl, String playlistName,String ownerId){
+        featuredPlaylists.add(new Playlists(playlistId,playlistImageUrl,playlistName,ownerId));
     }
     public ArrayList<Playlists> getFeaturedPlaylists(){
        return featuredPlaylists;
 
     }
 
-    public void setUserPlaylists(String playlistId, String playlistImageUrl, String playlistName){
-        userPlaylists.add(new Playlists(playlistId,playlistImageUrl,playlistName));
+    public void setUserPlaylists(String playlistId, String playlistImageUrl, String playlistName,String ownerId){
+        userPlaylists.add(new Playlists(playlistId,playlistImageUrl,playlistName,ownerId));
     }
     public ArrayList<Playlists> getUserPlaylists(){
       return userPlaylists;
@@ -64,12 +64,17 @@ public class DataService  {
     }
 
     public void setUserPlaylistsTracksMap(String key,String songId,String songName,String albumName,String artistName,String imageUrl,String imageUrlSmall,String songDuration,String songUri){
+         ArrayList<Songs>userPlaylistTracks = new ArrayList<>();
         if(!userPlaylistsTracksMap.containsKey(key)){
             userPlaylistTracks.add(new Songs(songId,songName,albumName,artistName,imageUrl,imageUrlSmall,songDuration,songUri));
             userPlaylistsTracksMap.put(key,userPlaylistTracks);
         }else{
             userPlaylistTracks = userPlaylistsTracksMap.get(key);
-            userPlaylistTracks.add(new Songs(songId,songName,albumName,artistName,imageUrl,imageUrlSmall,songDuration,songUri));
+            if(!userPlaylistTracks.contains(songId)) {
+                Log.d("TAG","songId is not there");
+                userPlaylistTracks.add(new Songs(songId, songName, albumName, artistName, imageUrl, imageUrlSmall, songDuration, songUri));
+            }
+
             userPlaylistsTracksMap.put(key,userPlaylistTracks);
         }
     }
@@ -78,13 +83,14 @@ public class DataService  {
         return userPlaylistsTracksMap;
     }
     public void setFeaturedPlaylistsTracksMap(String key,String songId,String songName,String albumName,String artistName,String imageUrl,String imageUrlSmall,String songDuration,String songUri){
+        ArrayList<Songs> featurePlaylistTracks = new ArrayList<>();
         if(!featurePlaylistsTracksMap.containsKey(key)){
            featurePlaylistTracks.add(new Songs(songId,songName,albumName,artistName,imageUrl,imageUrlSmall,songDuration,songUri));
-            featurePlaylistsTracksMap.put(key,userPlaylistTracks);
+            featurePlaylistsTracksMap.put(key,featurePlaylistTracks);
         }else{
-            featurePlaylistTracks = userPlaylistsTracksMap.get(key);
+            featurePlaylistTracks = featurePlaylistsTracksMap.get(key);
            featurePlaylistTracks.add(new Songs(songId,songName,albumName,artistName,imageUrl,imageUrlSmall,songDuration,songUri));
-            featurePlaylistsTracksMap.put(key,userPlaylistTracks);
+            featurePlaylistsTracksMap.put(key,featurePlaylistTracks);
         }
     }
 

@@ -61,21 +61,22 @@ public class FeaturedPlayListTask extends AsyncTask<String,String,String> {
                                 playlistId = trackObject.getString("playlist_id");
                                 playlistName = trackObject.getString("playlist_name");
                                 playlistImageUrl = trackObject.getString("playlist_image");
-                               // playlistOwner = trackObject.getString("playlist_owner");
-                                DataService.getInstance().setFeaturedPlaylists(playlistId,playlistImageUrl,playlistName);
+                                playlistOwner = trackObject.getString("playlist_owner");
+                                DataService.getInstance().setFeaturedPlaylists(playlistId,playlistImageUrl,playlistName,playlistOwner);
                             }
+                            message = "download successful";
                         }
                     } catch (JSONException e) {
                         Log.v("MusicGo", "Json exception " + e.getLocalizedMessage());
                     }
-                    message = "download successful";
+
                 }
                 myDownloadCount++;
                 if(message!= null && message.equalsIgnoreCase("download successful")){
-                    ArrayList<Playlists> downloadedPlaylists = DataService.getInstance().getUserPlaylists();
+                    ArrayList<Playlists> downloadedPlaylists = DataService.getInstance().getFeaturedPlaylists();
                     for(Playlists playlist : downloadedPlaylists){
                         new FeaturedPlaylistTracksDownloadTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,new String[]{
-                                PlaylistsActivity.BASE_URL+"/query/"+PlaylistsActivity.STATION_TYPE_FEATURED_TRACKS+"/"+playlist.getPlaylistId()
+                                PlaylistsActivity.BASE_URL+"/query/"+PlaylistsActivity.STATION_TYPE_FEATURED_TRACKS+"/"+playlist.getPlaylistId()+"/"+playlist.getOwnerId()
                                 ,playlist.getPlaylistId()});
                     }
                 }

@@ -156,7 +156,11 @@ public class MainFragment extends Fragment implements View.OnClickListener,Conne
 
             case R.id.my_songs_layout:
                // downloadMySongsData();
-                    SongsFragment songsFragment = SongsFragment.newInstance(PlaylistsActivity.STATION_TYPE_MY_SONG);
+                    Bundle b = new Bundle();
+                 b.putString("playlist_id", "");
+                    b.putInt("type",PlaylistsActivity.STATION_TYPE_MY_SONG);
+                    SongsFragment songsFragment = SongsFragment.newInstance();
+                    songsFragment.setArguments(b);
                     fragmentManager.beginTransaction().replace(R.id.main_container, songsFragment).addToBackStack(null).commit();
 
                 break;

@@ -65,8 +65,9 @@ public class UserPlaylistTask extends AsyncTask<String,String,String> {
                                     playlistId = trackObject.getString("playlist_id");
                                     playlistName = trackObject.getString("playlist_name");
                                     playlistImageUrl = trackObject.getString("playlist_image");
+                                    playlistOwner = trackObject.getString("playlist_owner");
                                     Log.d("TAG","user playlists data " + playlistId + " :: " +playlistName+" :: " + playlistImageUrl);
-                                    DataService.getInstance().setUserPlaylists(playlistId,playlistImageUrl,playlistName);
+                                    DataService.getInstance().setUserPlaylists(playlistId,playlistImageUrl,playlistName,playlistOwner);
                                 }
                                 message = "download successful";
                                 mySongsOutput = true;
@@ -83,7 +84,7 @@ public class UserPlaylistTask extends AsyncTask<String,String,String> {
                         for(Playlists playlist : downloadedPlaylists){
                             new UserPlaylistTracksDownloadTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,new String[]{
                                     PlaylistsActivity.BASE_URL+"/query/"+PlaylistsActivity.STATION_TYPE_USER_TRACKS+"/"+
-                                            playlist.getPlaylistId(),playlist.getPlaylistId()});
+                                            playlist.getPlaylistId()+"/"+playlist.getOwnerId(),playlist.getPlaylistId()});
                         }
                     }
                 }

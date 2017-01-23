@@ -16,6 +16,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * Created by vinamravinay12 on 12/12/2016.
  */
@@ -66,6 +68,7 @@ public class FeaturedPlaylistTracksDownloadTask extends AsyncTask<String,String,
                                 songImageUrlSmall = trackObject.getString("image_url_small");
                                 songDuration = trackObject.getString("duration");
                                 songUri = trackObject.getString("song_uri");
+
                                 DataService.getInstance().setFeaturedPlaylistsTracksMap(key,songId,songName,albumName,
                                         artistName,songImageUrl,songImageUrlSmall,songDuration,songUri);
                             }

@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.vinam.musicgo.R;
+import com.example.vinam.musicgo.activities.PlaylistsActivity;
 import com.example.vinam.musicgo.fragments.SongsFragment;
 import com.example.vinam.musicgo.fragments.SpotifyPlayerFragment;
 import com.example.vinam.musicgo.holders.PlaylistViewHolder;
@@ -50,9 +51,14 @@ public class PlaylistsAdapter extends RecyclerView.Adapter<PlaylistViewHolder> {
             public void onClick(View view) {
                 int p = position;
 
-                SongsFragment songsFragment = SongsFragment.newInstance(type);
+                SongsFragment songsFragment = SongsFragment.newInstance();
                 Bundle b = new Bundle();
                 b.putString("playlist_id", playlists.getPlaylistId());
+                if(type == PlaylistsActivity.STATION_TYPE_USER_PLAYLIST)
+                    b.putInt("type",PlaylistsActivity.STATION_TYPE_USER_TRACKS);
+                else{
+                    b.putInt("type",PlaylistsActivity.STATION_TYPE_FEATURED_TRACKS);
+                }
                 songsFragment.setArguments(b);
                 FragmentManager fragmentManager = fragment.getActivity().getSupportFragmentManager();
                 fragmentManager.beginTransaction().replace(R.id.main_container,songsFragment).addToBackStack(null).commit();

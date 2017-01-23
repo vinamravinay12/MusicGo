@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,15 +46,15 @@ public class SongsFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
+     *
      *
      *
      * @return A new instance of fragment SongsFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static SongsFragment newInstance(int param1) {
+    public static SongsFragment newInstance() {
         SongsFragment fragment = new SongsFragment();
-        type = param1;
+        //type = param1;
         return fragment;
     }
 
@@ -62,6 +63,9 @@ public class SongsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             key  = getArguments().getString("playlist_id");
+            type = getArguments().getInt("type");
+            Log.d("TAG","key is  featured " + key);
+
         }
     }
 
@@ -73,21 +77,28 @@ public class SongsFragment extends Fragment {
         RecyclerView recyclerView = (RecyclerView)view.findViewById(R.id.recyler_songs);
         recyclerView.setHasFixedSize(true);
         SongsAdapter songsAdapter;
+        Log.d("TAG","playlist_type is " + type);
         if(type == PlaylistsActivity.STATION_TYPE_MY_SONG){
-           songsAdapter = new SongsAdapter(DataService.getInstance().getUserSongsList(),this);
+           songsAdapter = new SongsAdapter(DataService.getInstance().getUserSongsList(),this,"my_song");
 
             // recyclerView.setBackgroundResource(R.drawable.side_nav_bar_featured);
         } else if(type == PlaylistsActivity.STATION_TYPE_USER_TRACKS){
-            songsAdapter = new SongsAdapter(DataService.getInstance().getUserPlaylistsTracksMap().get(key),this);
+            StringBuffer userTrackType = new StringBuffer();
+            userTrackType.append("user_playlists").append(",").append(key);
+            //Log.d("TAG","user playlists size "+ DataService.getInstance().getUserPlaylistsTracksMap().size());
+            songsAdapter = new SongsAdapter(DataService.getInstance().getUserPlaylistsTracksMap().get(key),this,userTrackType.toString());
         }
         else{
-            songsAdapter = new SongsAdapter(DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key),this);
+            StringBuffer featuredType = new StringBuffer();
+            featuredType.append("featured_playlists").append(",").append(key);
+          //  Log.d("TAG","featured playlist tracks sizde " + DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key).size());
+            songsAdapter = new SongsAdapter(DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key),this,featuredType.toString());
         }
         recyclerView.setAdapter(songsAdapter);
         recyclerView.addItemDecoration(new HorizontalSpaceItemDecorator(30));
 
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this.getActivity());
         linearLayoutManager.setOrientation(GridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
 

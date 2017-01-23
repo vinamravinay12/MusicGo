@@ -34,14 +34,11 @@ public class PlaylistViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void updateUI(Playlists playlists){
-        String uri = playlists.getPlaylistImageUrl();
+        playlistName.setText(playlists.getPlaylistName());
 
         try {
             DecodeBitMap decodeBitMap = new DecodeBitMap(playlistImageUri,playlists);
             decodeBitMap.execute();
-
-            playlistName.setText(playlists.getPlaylistName());
-            Log.d("watchdogs","song image " + uri);
 
         } catch(Exception e){
             Log.d("MusicGo","exception just generated "+e.getMessage());
@@ -50,31 +47,23 @@ public class PlaylistViewHolder extends RecyclerView.ViewHolder {
     public Bitmap decodeUri(String imageUri){
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
+        Boolean scaleByHeight = Math.abs(options.outHeight - 100) >= Math.abs(options.outWidth - 100);
+        if (options.outHeight * options.outWidth * 2 >= 16384) {
+            double sampleSize = scaleByHeight ? options.outHeight / 1000 : options.outWidth / 1000;
+            options.inSampleSize = (int) Math.pow(2d, Math.floor(Math.log(sampleSize) / Math.log(2d)));
+        }
+        options.inJustDecodeBounds = false;
+        options.inTempStorage = new byte[16 * 1024];
         InputStream in = null;
-
         try {
             in = new java.net.URL(imageUri).openStream();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Bitmap output = null;
-         output =  BitmapFactory.decodeStream(in,new Rect(-1,-1,-1,-1),options);
-        Log.d("ImageBitmap","original width and height " + options.outWidth+" :: "+options.outHeight);
-        Boolean scaleByHeight = Math.abs(options.outHeight - 100) >= Math.abs(options.outWidth - 100);
-        if(options.outHeight * options.outWidth * 2 >= 16384){
-            double sampleSize = scaleByHeight ? options.outHeight/4000 : options.outWidth/2000;
-            options.inSampleSize = (int) Math.pow(2d,Math.floor(Math.log(sampleSize)/Math.log(2d)));
-        }
-        options.inJustDecodeBounds = false;
-        options.inTempStorage = new byte[16*1024];
 
-
-        output =  BitmapFactory.decodeStream(in,new Rect(-1,-1,-1,-1),options);
-        //Bitmap output = BitmapFactory.decodeStream(in);
-       // Bitmap scaled = Bitmap.createScaledBitmap(output,170,170,false);
-
-        return output;
-
+        Bitmap output = BitmapFactory.decodeStream(in, new Rect(-1, -1, -1, -1), options);
+        Bitmap scaled = Bitmap.createScaledBitmap(output, 170, 170, true);
+        return scaled;
     }
 
 class DecodeBitMap extends AsyncTask<Void,Void,Bitmap> {
@@ -88,6 +77,7 @@ class DecodeBitMap extends AsyncTask<Void,Void,Bitmap> {
 
     @Override
     protected Bitmap doInBackground(Void... voids) {
+
         return decodeUri(playlists.getPlaylistImageUrl());
     }
 

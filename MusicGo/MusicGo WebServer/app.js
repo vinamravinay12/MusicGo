@@ -2,7 +2,7 @@
 app = express();
 console.log('dir name ' + __dirname);
 //app.use(express.static(__dirnam))
-url = '192.168.1.115';
+url = '192.168.0.13';
 port = Number(process.env.POST || 3100);
 var SpotifyWebApi = require('spotify-web-api-node');
 
@@ -45,7 +45,10 @@ app.get('/query/:id',function(req,res){
     console.log("query = "+req.params.id);
     if(req.params.id == 0){
 
-      spotifyApi.getUserPlaylists(this.userId).then(function(data) {
+      spotifyApi.getUserPlaylists(this.userId,{
+    limit : 50,
+    offset: 0
+  }).then(function(data) {
         var updatedJson = '{"result":[';
         var str = JSON.stringify(data.body);
         var userPlaylists = JSON.parse(str);
@@ -58,6 +61,7 @@ app.get('/query/:id',function(req,res){
             var tracks = JSON.parse(tracksStr);
             var playlistId = tracks.id;
             var playlistName = tracks.name;
+            var ownerId = tracks.owner.id;
             var imageStr = "";
             //console.log("images length " + tracks.images.length);
               if(tracks.images.length > 1){
@@ -71,16 +75,16 @@ app.get('/query/:id',function(req,res){
               if(i === itemLength){
               //  console.log("image is " +playlistId+" :: "+playlistName);
 
-                  var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+'}';
+                  var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"}';
                   updatedJson  = updatedJson +jsonObject;
 
               } else if(i === 0){
               //  console.log("image is " +playlistId+" :: "+playlistName);
-                  var jsonObject ='{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+'},';
+                  var jsonObject ='{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
                   updatedJson = updatedJson + jsonObject;
               }
               else{
-                  var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+'},';
+                  var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
                   updatedJson = updatedJson + jsonObject;
               }
           }
@@ -174,7 +178,10 @@ app.get('/query/:id',function(req,res){
   });
 
 } else{
-  spotifyApi.getFeaturedPlaylists(this.userId).then(function(data) {
+  spotifyApi.getFeaturedPlaylists(  {
+limit : 50,
+offset: 0
+}).then(function(data) {
     var updatedJson = '{"result":[';
     var str = JSON.stringify(data.body);
     var playlistsMain= JSON.parse(str);
@@ -188,6 +195,7 @@ app.get('/query/:id',function(req,res){
         var tracks = JSON.parse(tracksStr);
         var playlistId = tracks.id;
         var playlistName = tracks.name;
+        var ownerId = tracks.owner.id;
         var imageStr = "";
         //console.log("images length " + tracks.images.length);
           if(tracks.images.length > 1){
@@ -201,16 +209,16 @@ app.get('/query/:id',function(req,res){
           if(i === itemLength){
           //  console.log("image is " +playlistId+" :: "+playlistName);
 
-              var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+'}';
+              var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"}';
               updatedJson  = updatedJson +jsonObject;
 
           } else if(i === 0){
           //  console.log("image is " +playlistId+" :: "+playlistName);
-              var jsonObject ='{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+'},';
+              var jsonObject ='{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
               updatedJson = updatedJson + jsonObject;
           }
           else{
-              var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+'},';
+              var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
               updatedJson = updatedJson + jsonObject;
           }
 
@@ -229,11 +237,11 @@ app.get('/query/:id',function(req,res){
 }
 });
 
-app.get('/query/:id/:playlistId',function(req,res){
+app.get('/query/:id/:playlistId/:ownerId',function(req,res){
   console.log("query here= " +req.params.id );
   //console.log("query = "+req.params.playlistId);
     if(req.params.id == 3){
-      spotifyApi.getPlaylistTracks(this.userId,req.params.playlistId,{
+      spotifyApi.getPlaylistTracks(req.params.ownerId,req.params.playlistId,{
     limit : 50,
     offset: 0
   },function(err,data){
@@ -242,7 +250,7 @@ app.get('/query/:id/:playlistId',function(req,res){
     }else{
       var updatedJson = '{"result":[';
     var str = JSON.stringify(data.body);
-    // console.log("Songs data is " +str);
+     //console.log("Songs data is " +str+"\n\n");
       var obj = JSON.parse(str);
       var itemsList = obj.items;
       for(var i = 0;i<itemsList.length;i++){
@@ -252,10 +260,12 @@ app.get('/query/:id/:playlistId',function(req,res){
           var songName = trackDetails.name;
           var songId = trackDetails.id;
         //  console.log("albums "+ albumName+" :: "+songName+" :: "+songId);
-          albumName = albumName.replace(/"/g,"");
-          songName = songName.replace(/"/g,"");
+          albumName = albumName.replace(/['"]+/g, '');
+          songName = songName.replace(/['"]+/g, '');
           var songUri = trackDetails.uri;
           var artistName = trackDetails.album.artists[0].name;
+          artistName = artistName.replace(/['"]+/g, '');
+          //console.log("artist name is "+artistName);
           var imageArrayLength = trackDetails.album.images.length;
           var smallLength;
           var mediumLength;
@@ -277,8 +287,9 @@ app.get('/query/:id/:playlistId',function(req,res){
         var songImage = JSON.stringify(song[mediumLength].url);
           var songImageSmall = JSON.stringify(song[smallLength].url);
         //  console.log("image urls "+songImage+" :: "+songImageSmall);
-          var duration = trackDetails.duration;
+          var duration = trackDetails.duration_ms;
           //  console.log("song name is ",songImage);
+
           var itemLength = itemsList.length;
           itemLength = itemLength -1;
           if(i === itemLength){
@@ -303,7 +314,7 @@ app.get('/query/:id/:playlistId',function(req,res){
 
 
      // var obj = '{"result":'+str+',"auth_code" :"'+auth_code+'"}';
-
+//console.log("user playlist json " + updatedJson);
       res.send(updatedJson);
 
     }
@@ -312,7 +323,7 @@ app.get('/query/:id/:playlistId',function(req,res){
 } else{
   //    console.log("query = "+req.params.id);
 
-    spotifyApi.getPlaylistTracks(this.userId,req.params.playlistId,{
+    spotifyApi.getPlaylistTracks(req.params.ownerId,req.params.playlistId,{
   limit : 50,
   offset: 0
 },function(err,data){
@@ -356,9 +367,10 @@ app.get('/query/:id/:playlistId',function(req,res){
       var songImage = JSON.stringify(song[mediumLength].url);
         var songImageSmall = JSON.stringify(song[smallLength].url);
       //  console.log("image urls "+songImage+" :: "+songImageSmall);
-        var duration = trackDetails.duration;
+        var duration = trackDetails.duration_ms;
         //  console.log("song name is ",songImage);
         var itemLength = itemsList.length;
+          console.log("song details " +songName+" :: "+duration);
         itemLength = itemLength -1;
         if(i === itemLength){
             var jsonObject = '{"song_id":"'+songId+'","song_name":"'+songName+'","album_name":"'+albumName
@@ -375,7 +387,7 @@ app.get('/query/:id/:playlistId',function(req,res){
             +'","artist_name":"'+artistName+'","image_url":'+songImage+',"image_url_small":'+songImageSmall+',"duration":"'+duration+'","song_uri":"'+songUri+'"},';
             updatedJson = updatedJson + jsonObject;
         }
-        console.log("json object " + jsonObject);
+      //  console.log("json object " + jsonObject);
    }
 
       updatedJson = updatedJson + '],"auth_code":"'+auth_code+'"}';

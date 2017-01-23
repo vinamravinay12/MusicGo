@@ -39,7 +39,7 @@ public class PlaylistsActivity extends AppCompatActivity
     private Player player;
     public static  boolean userLoggedIn = false;
     public static String AUTH_TOKEN;
-    public static final String BASE_URL = "http://192.168.1.115:3100";
+    public static final String BASE_URL = "http://192.168.0.13:3100";
     public static final int STATION_TYPE_USER_PLAYLIST = 0;
     public static final int STATION_TYPE_MY_SONG = 1;
     public static final int STATION_TYPE_FEATURED = 2;
