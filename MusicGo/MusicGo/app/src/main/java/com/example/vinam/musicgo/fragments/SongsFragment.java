@@ -11,12 +11,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.vinam.musicgo.R;
 import com.example.vinam.musicgo.Services.DataService;
 import com.example.vinam.musicgo.activities.PlaylistsActivity;
 import com.example.vinam.musicgo.adapters.PlaylistsAdapter;
 import com.example.vinam.musicgo.adapters.SongsAdapter;
+import com.example.vinam.musicgo.model.Songs;
+
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -75,24 +80,47 @@ public class SongsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_songs, container, false);
         RecyclerView recyclerView = (RecyclerView)view.findViewById(R.id.recyler_songs);
+        Button playAllButton = (Button)view.findViewById(R.id.play_all_button);
+        TextView noSongText = (TextView)view.findViewById(R.id.no_songs);
         recyclerView.setHasFixedSize(true);
-        SongsAdapter songsAdapter;
+        SongsAdapter songsAdapter= null;
         Log.d("TAG","playlist_type is " + type);
         if(type == PlaylistsActivity.STATION_TYPE_MY_SONG){
-           songsAdapter = new SongsAdapter(DataService.getInstance().getUserSongsList(),this,"my_song");
+            if(songExists(DataService.getInstance().getUserSongsList())){
+                songsAdapter = new SongsAdapter(DataService.getInstance().getUserSongsList(),this,"my_song");
+                recyclerView.setVisibility(View.VISIBLE);
+                noSongText.setVisibility(View.INVISIBLE);
+            }else{
+                recyclerView.setVisibility(View.INVISIBLE);
+                noSongText.setVisibility(View.VISIBLE);
+            }
 
             // recyclerView.setBackgroundResource(R.drawable.side_nav_bar_featured);
         } else if(type == PlaylistsActivity.STATION_TYPE_USER_TRACKS){
             StringBuffer userTrackType = new StringBuffer();
             userTrackType.append("user_playlists").append(",").append(key);
             //Log.d("TAG","user playlists size "+ DataService.getInstance().getUserPlaylistsTracksMap().size());
-            songsAdapter = new SongsAdapter(DataService.getInstance().getUserPlaylistsTracksMap().get(key),this,userTrackType.toString());
+            if(songExists(DataService.getInstance().getUserPlaylistsTracksMap().get(key))) {
+                songsAdapter = new SongsAdapter(DataService.getInstance().getUserPlaylistsTracksMap().get(key), this, userTrackType.toString());
+                recyclerView.setVisibility(View.VISIBLE);
+                noSongText.setVisibility(View.INVISIBLE);
+            }else{
+                recyclerView.setVisibility(View.INVISIBLE);
+                noSongText.setVisibility(View.VISIBLE);
+            }
         }
         else{
             StringBuffer featuredType = new StringBuffer();
             featuredType.append("featured_playlists").append(",").append(key);
-          //  Log.d("TAG","featured playlist tracks sizde " + DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key).size());
-            songsAdapter = new SongsAdapter(DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key),this,featuredType.toString());
+            if(songExists(DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key))) {
+                //  Log.d("TAG","featured playlist tracks sizde " + DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key).size());
+                songsAdapter = new SongsAdapter(DataService.getInstance().getFeaturedPlaylistsTracksMap().get(key), this, featuredType.toString());
+                recyclerView.setVisibility(View.VISIBLE);
+                noSongText.setVisibility(View.INVISIBLE);
+            } else{
+                recyclerView.setVisibility(View.INVISIBLE);
+                noSongText.setVisibility(View.VISIBLE);
+            }
         }
         recyclerView.setAdapter(songsAdapter);
         recyclerView.addItemDecoration(new HorizontalSpaceItemDecorator(30));
@@ -106,6 +134,14 @@ public class SongsFragment extends Fragment {
     }
 
     // TODO: Rename method, update argument and hook method into UI event
+
+    private boolean songExists(ArrayList<Songs> userSongsList) {
+        if(userSongsList.size() == 0 || userSongsList == null)
+        return false;
+        else return true;
+
+    }
+
     public void onButtonPressed(Uri uri) {
        /* if (mListener != null) {
             mListener.onFragmentInteraction(uri);

@@ -29,15 +29,20 @@ public class SongsViewHolder extends RecyclerView.ViewHolder {
     private ImageView songImage;
     private TextView songDetails;
     private TextView artistName;
+    private TextView noSongText;
     public SongsViewHolder(View itemView) {
         super(itemView);
       //  Log.d("TAG","inside songs view holder constructor");
         songImage = (ImageView)itemView.findViewById(R.id.song_image);
         songDetails = (TextView)itemView.findViewById(R.id.song_name);
         artistName = (TextView)itemView.findViewById(R.id.song_artist);
+        noSongText = (TextView)itemView.findViewById(R.id.no_songs);
     }
 
     public void updateUI(Songs song){
+        if(song.getSongId().equalsIgnoreCase("empty")){
+
+        }
         songDetails.setText(song.getSongName()+" - " +song.getAlbumName());
         // Log.d("watchdogs","song image " + uri);
         artistName.setText(song.getArtistName());

@@ -1,4 +1,4 @@
- var express = require('express');
+var express = require('express');
 app = express();
 console.log('dir name ' + __dirname);
 //app.use(express.static(__dirnam))
@@ -45,10 +45,7 @@ app.get('/query/:id',function(req,res){
     console.log("query = "+req.params.id);
     if(req.params.id == 0){
 
-      spotifyApi.getUserPlaylists(this.userId,{
-    limit : 50,
-    offset: 0
-  }).then(function(data) {
+      spotifyApi.getUserPlaylists(this.userId,{limit:50,offset:0}).then(function(data) {
         var updatedJson = '{"result":[';
         var str = JSON.stringify(data.body);
         var userPlaylists = JSON.parse(str);
@@ -56,18 +53,23 @@ app.get('/query/:id',function(req,res){
         if(userPlaylists.items != null){
 
           var itemsLength = userPlaylists.items.length;
+          if(itemsLength > 0){
           for(var i = 0; i <itemsLength;i++){
             var tracksStr  = JSON.stringify(userPlaylists.items[i]);
             var tracks = JSON.parse(tracksStr);
             var playlistId = tracks.id;
             var playlistName = tracks.name;
-            var ownerId = tracks.owner.id;
+            var ownerStr= JSON.stringify(tracks.owner);
+            var owner = JSON.parse(ownerStr);
+            var ownerId = owner.id;
             var imageStr = "";
             //console.log("images length " + tracks.images.length);
               if(tracks.images.length > 1){
                 imageStr = JSON.stringify(tracks.images[1].url);
-              }else {
+              }else if(tracks.images.length == 1) {
                 imageStr = JSON.stringify(tracks.images[0].url);
+              } else{
+                imageStr = '"no image"';
               }
               var itemLength = userPlaylists.items.length;
               itemLength = itemLength-1;
@@ -88,6 +90,11 @@ app.get('/query/:id',function(req,res){
                   updatedJson = updatedJson + jsonObject;
               }
           }
+        } else{
+          var jsonObject = '{"playlist_id":"empty","playlist_name":"empty","playlist_image":"empty"}';
+          updatedJson  = updatedJson +jsonObject;
+
+        }
         }
           updatedJson = updatedJson + '],"auth_code":"'+auth_code+'"}';
 
@@ -144,7 +151,7 @@ app.get('/query/:id',function(req,res){
       var songImage = JSON.stringify(song[mediumLength].url);
         var songImageSmall = JSON.stringify(song[smallLength].url);
       //  console.log("image urls "+songImage+" :: "+songImageSmall);
-        var duration = trackDetails.duration;
+        var duration = trackDetails.duration_ms;
         //  console.log("song name is ",songImage);
         var itemLength = itemsList.length;
         itemLength = itemLength -1;
@@ -178,10 +185,8 @@ app.get('/query/:id',function(req,res){
   });
 
 } else{
-  spotifyApi.getFeaturedPlaylists(  {
-limit : 50,
-offset: 0
-}).then(function(data) {
+  spotifyApi.getFeaturedPlaylists({ limit : 50, offset: 0})
+  .then(function(data) {
     var updatedJson = '{"result":[';
     var str = JSON.stringify(data.body);
     var playlistsMain= JSON.parse(str);
@@ -189,50 +194,57 @@ offset: 0
     var userPlaylists = playlistsMain.playlists;
     var itemsLength = userPlaylists.items.length;
   //  console.log("featured lenth "+ itemsLength);
-      for(var i = 0; i<itemsLength;i++){
-        var tracksStr  = JSON.stringify(userPlaylists.items[i]);
-    //    console.log("featured playlists "+ userPlaylists.items[i]);
-        var tracks = JSON.parse(tracksStr);
-        var playlistId = tracks.id;
-        var playlistName = tracks.name;
-        var ownerId = tracks.owner.id;
-        var imageStr = "";
-        //console.log("images length " + tracks.images.length);
-          if(tracks.images.length > 1){
-            imageStr = JSON.stringify(tracks.images[1].url);
-          }else {
-            imageStr = JSON.stringify(tracks.images[0].url);
-          }
-          var itemLength = userPlaylists.items.length;
-          itemLength = itemLength-1;
-         //console.log("length here is " +itemLength + " :: " +i);
-          if(i === itemLength){
-          //  console.log("image is " +playlistId+" :: "+playlistName);
+  if(itemsLength > 0){
+  for(var i = 0; i <itemsLength;i++){
+    var tracksStr  = JSON.stringify(userPlaylists.items[i]);
+    var tracks = JSON.parse(tracksStr);
+    var playlistId = tracks.id;
+    var playlistName = tracks.name;
+    var ownerStr= JSON.stringify(tracks.owner);
+    var owner = JSON.parse(ownerStr);
+    var ownerId = owner.id;
+    var imageStr = "";
+    //console.log("images length " + tracks.images.length);
+      if(tracks.images.length > 1){
+        imageStr = JSON.stringify(tracks.images[1].url);
+      }else if(tracks.images.length == 1) {
+        imageStr = JSON.stringify(tracks.images[0].url);
+      } else{
+        imageStr = '"no image"';
+      }
+      var itemLength = userPlaylists.items.length;
+      itemLength = itemLength-1;
+     //console.log("length here is " +itemLength + " :: " +i);
+      if(i === itemLength){
+      //  console.log("image is " +playlistId+" :: "+playlistName);
 
-              var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"}';
-              updatedJson  = updatedJson +jsonObject;
+          var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"}';
+          updatedJson  = updatedJson +jsonObject;
 
-          } else if(i === 0){
-          //  console.log("image is " +playlistId+" :: "+playlistName);
-              var jsonObject ='{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
-              updatedJson = updatedJson + jsonObject;
-          }
-          else{
-              var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
-              updatedJson = updatedJson + jsonObject;
-          }
+      } else if(i === 0){
+      //  console.log("image is " +playlistId+" :: "+playlistName);
+          var jsonObject ='{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
+          updatedJson = updatedJson + jsonObject;
+      }
+      else{
+          var jsonObject = '{"playlist_id":"'+playlistId+'","playlist_name":"'+playlistName+'","playlist_image":'+imageStr+',"playlist_owner":"'+ownerId+'"},';
+          updatedJson = updatedJson + jsonObject;
+      }
+  }
+} else{
+  var jsonObject = '{"playlist_id":"empty","playlist_name":"empty","playlist_image":"empty"}';
+  updatedJson  = updatedJson +jsonObject;
 
-    }
+}
+
       updatedJson = updatedJson + '],"auth_code":"'+auth_code+'"}';
 
        // var obj = '{"result":'+str+',"auth_code" :"'+auth_code+'"}';
       //  console.log("sending featured play json "+updatedJson);
       res.send(updatedJson);
-//  console.log("hello I am fine");
-      //console.log('tracks are ',tracks);
-    },function(err) {
-      console.log('Something went wrong in downloading featured playlists!', err);
-    });
+  }, function(err) {
+    console.log("Something went wrong!", err);
+  });
 
 }
 });
@@ -250,9 +262,10 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
     }else{
       var updatedJson = '{"result":[';
     var str = JSON.stringify(data.body);
-     //console.log("Songs data is " +str+"\n\n");
+    // console.log("Songs data is " +str);
       var obj = JSON.parse(str);
       var itemsList = obj.items;
+      if(itemsList.length > 0){
       for(var i = 0;i<itemsList.length;i++){
         var trackStr = JSON.stringify(itemsList[i].track);
         var trackDetails = JSON.parse(trackStr);
@@ -260,12 +273,10 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
           var songName = trackDetails.name;
           var songId = trackDetails.id;
         //  console.log("albums "+ albumName+" :: "+songName+" :: "+songId);
-          albumName = albumName.replace(/['"]+/g, '');
-          songName = songName.replace(/['"]+/g, '');
+          albumName = albumName.replace(/"/g,"");
+          songName = songName.replace(/"/g,"");
           var songUri = trackDetails.uri;
           var artistName = trackDetails.album.artists[0].name;
-          artistName = artistName.replace(/['"]+/g, '');
-          //console.log("artist name is "+artistName);
           var imageArrayLength = trackDetails.album.images.length;
           var smallLength;
           var mediumLength;
@@ -289,7 +300,6 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
         //  console.log("image urls "+songImage+" :: "+songImageSmall);
           var duration = trackDetails.duration_ms;
           //  console.log("song name is ",songImage);
-
           var itemLength = itemsList.length;
           itemLength = itemLength -1;
           if(i === itemLength){
@@ -309,12 +319,16 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
           }
         //  console.log("json object " + jsonObject);
   }
+} else{
+  var jsonObject = '{"song_id":"empty","song_name":"empty","album_name":"empty","artist_name":"empty","image_url":"empty","image_url_small":"empty","duration":"0","song_uri":"empty"}';
+  updatedJson  = updatedJson +jsonObject;
+}
 
         updatedJson = updatedJson + '],"auth_code":"'+auth_code+'"}';
 
 
      // var obj = '{"result":'+str+',"auth_code" :"'+auth_code+'"}';
-//console.log("user playlist json " + updatedJson);
+
       res.send(updatedJson);
 
     }
@@ -335,6 +349,7 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
    // console.log("Songs data is " +str);
     var obj = JSON.parse(str);
     var itemsList = obj.items;
+    if(itemsList.length > 0){
     for(var i = 0;i<itemsList.length;i++){
       var trackStr = JSON.stringify(itemsList[i].track);
       var trackDetails = JSON.parse(trackStr);
@@ -370,7 +385,6 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
         var duration = trackDetails.duration_ms;
         //  console.log("song name is ",songImage);
         var itemLength = itemsList.length;
-          console.log("song details " +songName+" :: "+duration);
         itemLength = itemLength -1;
         if(i === itemLength){
             var jsonObject = '{"song_id":"'+songId+'","song_name":"'+songName+'","album_name":"'+albumName
@@ -387,8 +401,12 @@ app.get('/query/:id/:playlistId/:ownerId',function(req,res){
             +'","artist_name":"'+artistName+'","image_url":'+songImage+',"image_url_small":'+songImageSmall+',"duration":"'+duration+'","song_uri":"'+songUri+'"},';
             updatedJson = updatedJson + jsonObject;
         }
-      //  console.log("json object " + jsonObject);
+        console.log("json object " + jsonObject);
    }
+ } else{
+   var jsonObject = '{"song_id":"empty","song_name":"empty","album_name":"empty","artist_name":"empty","image_url":"empty","image_url_small":"empty","duration":"0","song_uri":"empty"}';
+   updatedJson  = updatedJson +jsonObject;
+ }
 
       updatedJson = updatedJson + '],"auth_code":"'+auth_code+'"}';
 

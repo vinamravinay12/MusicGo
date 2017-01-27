@@ -85,6 +85,7 @@ public class UserPlaylistTracksDownloadTask extends AsyncTask<String,String,Stri
                             DataService.getInstance().setUserPlaylistsTracksMap(key, songId, songName, albumName,
                                     artistName, songImageUrl, songImageUrlSmall, songDuration, songUri);
                         }
+
                     }
                 } catch (JSONException e) {
                     Log.v("MusicGo", "Json exception " + e.getLocalizedMessage());

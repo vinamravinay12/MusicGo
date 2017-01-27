@@ -34,7 +34,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsViewHolder> {
         this.songsList = songsList;
         this.fragment = fragment;
         this.playlistType = playlistType;
-        Log.d("TAG","size of the songs list "+ this.songsList.size());
+//        Log.d("TAG","size of the songs list "+ this.songsList.size());
     }
     @Override
     public SongsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

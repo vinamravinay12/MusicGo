@@ -3,10 +3,12 @@ package com.example.vinam.musicgo.fragments;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +26,7 @@ import com.example.vinam.musicgo.model.Songs;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Error;
+import com.spotify.sdk.android.player.PlaybackState;
 import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
@@ -33,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -42,7 +46,7 @@ import java.util.ArrayList;
  * Use the {@link SpotifyPlayerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SpotifyPlayerFragment extends Fragment implements View.OnClickListener,SpotifyPlayer.NotificationCallback,ConnectionStateCallback {
+public class SpotifyPlayerFragment extends Fragment implements View.OnClickListener,SpotifyPlayer.NotificationCallback,ConnectionStateCallback,SeekBar.OnSeekBarChangeListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     String songUrl = "";
@@ -71,8 +75,14 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
     int songPosition;
     boolean isNext;
     boolean isPrevious;
-
-
+    int repeatClicked;
+    boolean isRepeat;
+    boolean isShuffled;
+    boolean isRepeatOneSong;
+    boolean isLastSong;
+    private Handler mHandler = new Handler();
+    private long seekForwardTime = 5000;
+    private long seekBackwardTime = 5000;
     public SpotifyPlayerFragment() {
         // Required empty public constructor
     }
@@ -105,7 +115,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
         songPosition = b.getInt("song_position");
         Log.d("MainActivity","playback song position is " + songPosition);
         playlistType = b.getString("playlist_type");
-//        duration = Long.parseLong(b.getString("song_duration"));
+        duration = Long.parseLong(b.getString("song_duration"));
     }
 
     @Override
@@ -132,6 +142,9 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
         forwardButton.setOnClickListener(this);
         nextSongButton.setOnClickListener(this);
         previousSongButton.setOnClickListener(this);
+        shuffleButton.setOnClickListener(this);
+        repeatButton.setOnClickListener(this);
+        songProgress.setOnSeekBarChangeListener(this);
         if(PlaylistsActivity.userLoggedIn){
             Config playerConfig = new Config(getContext(),PlaylistsActivity.AUTH_TOKEN , PlaylistsActivity.CLIENT_ID);
             Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
@@ -153,56 +166,8 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
         DecodeBitmap decodeBitmap = new DecodeBitmap(song_image_player,imageURL);
 
         decodeBitmap.execute();
-        /*long seconds = (duration/1000)%60;
-        long minutes = (duration/(1000*60))%60;
-        long hour = (duration/(1000*60*60))%24;
-        final long[] elapsedTime = new long[1];
-        String formattedTime ="";
-        if(hour > 0){
-           formattedTime = String.format("%02d:%02d:%02d",hour,minutes,seconds);
-        } else
-            formattedTime = String.format("%02d:%02d",minutes,seconds);*/
-      //  duration = duration/1000;
-        /*songProgress.setMax((int)duration);
-        songProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int progress = 0;
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                progress = i;
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                elapsedTime[0] =  progress;
-            }
-        });
-        totalTime.setText(formattedTime);
-        String elapsedTimeFormat = "";
-        while(elapsedTime[0] < duration){
-            long elapsedSeconds = elapsedTime[0] %60;
-            long elapsedMinutes = (elapsedTime[0] /60)%60;
-            long elapsedHour = (elapsedTime[0] /(60*60))%24;
-
-            if(elapsedHour > 0)
-                elapsedTimeFormat = String.format("%02d:%02d:%02d",elapsedHour,elapsedMinutes,elapsedSeconds);
-            else
-                elapsedTimeFormat = String.format("%02d:%02d",elapsedMinutes,elapsedSeconds);
-            timeElapsed.setText(elapsedTimeFormat);
-            songProgress.setProgress((int) elapsedTime[0]);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            elapsedTime[0]++;
-
-
-        }*/
+        timeElapsed.setText("0:00");
+        totalTime.setText("mm:ss");
         return view;
     }
 
@@ -214,12 +179,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-       /* if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }*/
+
     }
 
     @Override
@@ -231,7 +191,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
     @Override
     public void onDestroy() {
        // super.onDestroy();
-        Spotify.destroyPlayer(this);
+       // Spotify.destroyPlayer(this);
         super.onDestroy();
     }
 
@@ -244,8 +204,24 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
                 playPauseButton.setImageResource(android.R.drawable.ic_media_pause);
                 isPlaying = true;
                 break;
-            case kSpPlaybackNotifyTrackChanged:
+           // case kSpPlaybackNotifyTrackChanged:
+            case kSpPlaybackNotifyAudioDeliveryDone:
+                if(isRepeat){
+                    songPosition++;
+                    retrieveNextOrPreviousSongDetails();
 
+                } else if(isRepeatOneSong){
+                    player.playUri(songUrl,0,0);
+                } else if(isShuffled){
+                    songPosition = getRandomSongPosition();
+                    retrieveNextOrPreviousSongDetails();
+                } else {
+                    songPosition = songPosition + 1;
+                    isNext = false;
+                    retrieveNextOrPreviousSongDetails();
+                }
+
+                break;
             default:
                 break;
         }
@@ -259,7 +235,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
     @Override
     public void onLoggedIn() {
         player.playUri(songUrl,0,0);
-
+        updateProgressBar();
     }
 
     @Override
@@ -284,6 +260,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
+
         switch(view.getId()){
             case R.id.playButton:
                 if(isPlaying){
@@ -297,24 +274,111 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
                 }
                 break;
             case R.id.next_song:
-                songPosition = songPosition + 1;
+                if(isShuffled)
+                    songPosition = getRandomSongPosition();
+                else songPosition = songPosition + 1;
                 isNext = true;
+                if(isRepeatOneSong){
+                    isRepeatOneSong = false;
+                    isRepeat = true;
+                    repeatClicked =1;
+                    repeatButton.setImageResource(R.drawable.ic_repeat_white_24dp);
+                }
                 retrieveNextOrPreviousSongDetails();
-
+              //  player.skipToNext();
                 Log.d("MainActivity","playback next song button clicked");
 
                 break;
             case R.id.previous_song:
-                songPosition = songPosition -1;
+                if(isShuffled)
+                    songPosition = getRandomSongPosition();
+                else songPosition = songPosition -1;
                 isPrevious = true;
+                if(isRepeatOneSong){
+                    isRepeatOneSong = false;
+                    isRepeat = true;
+                    repeatClicked =1;
+                    repeatButton.setImageResource(R.drawable.ic_repeat_white_24dp);
+                }
                 retrieveNextOrPreviousSongDetails();
                 Log.d("MainActivity","playback previous song button clicked");
+                break;
+            case R.id.repeat_song:
+                if(repeatClicked == 0){
+                    repeatButton.setColorFilter(Color.GREEN);
+                    isRepeat = true;
+                    isRepeatOneSong = false;
+                    repeatClicked = 1;
+                }else if(repeatClicked == 1){
+                    repeatButton.setImageResource(R.drawable.ic_repeat_one_white_24dp);
+                    repeatButton.setColorFilter(Color.GREEN);
+                    isRepeat = false;
+                    isRepeatOneSong = true;
+                    isShuffled = false;
+                    repeatClicked =2;
+
+                }else{
+                    repeatButton.setImageResource(R.drawable.ic_repeat_white_24dp);
+                    repeatButton.setColorFilter(Color.WHITE);
+                    isRepeatOneSong = false;
+                    repeatClicked = 0;
+                }
+                break;
+            case R.id.shuffle_song:
+                shuffleButton.setColorFilter(Color.GREEN);
+                if(isShuffled) {
+                    isShuffled = false;
+                    shuffleButton.setColorFilter(Color.WHITE);
+                }else {
+                    isShuffled = true;
+
+                }
+                break;
+            case R.id.forwardButton:
+                long currentPosition = player.getPlaybackState().positionMs;
+                if(currentPosition + seekForwardTime <= duration){
+                    player.seekToPosition((int) (currentPosition+seekForwardTime));
+                }else{
+                    player.seekToPosition((int) duration);
+                }
+                break;
+            case R.id.rewindButton:
+                long currentPositionInMs = player.getPlaybackState().positionMs;
+                if(currentPositionInMs - seekBackwardTime >=0){
+                    player.seekToPosition((int) (currentPositionInMs - seekBackwardTime));
+                }else{
+                    player.seekToPosition(0);
+                }
                /* songName.setText(nameOfSong+" - " + albumName);
                 artistName.setText(artist);
                 DecodeBitmap decodeBitmapPrevious = new DecodeBitmap(song_image_player,imageURL);
                 decodeBitmapPrevious.execute();
                 player.playUri(songUrl,0,0);*/
         }
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        mHandler.removeCallbacks(updateTimeTask);
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        mHandler.removeCallbacks(updateTimeTask);
+        int totalDuration = (int) duration;
+        int currentPosition = progressToTimer(seekBar.getProgress(), totalDuration);
+
+        // forward or backward to certain seconds
+       // player.seekTo(currentPosition);
+        player.seekToPosition(currentPosition);
+
+        // update timer progress again
+        updateProgressBar();
     }
 
     /**
@@ -378,17 +442,30 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
             return output;
         }
     }
-    public void updateSongDetails(String nameOfSong,String songUrl,String artist,String imageURL,String albumName){
+    public void updateSongDetails(String nameOfSong,String songUrl,String artist,String imageURL,String albumName,long duration){
+        player.refreshCache();
         this.nameOfSong = nameOfSong;
         this.songUrl = songUrl;
         this.artist = artist;
         this.imageURL = imageURL;
         this.albumName = albumName;
+        this.duration = duration;
         songName.setText(this.nameOfSong+" - " + albumName);
         artistName.setText(artist);
         DecodeBitmap decodeBitmapNext = new DecodeBitmap(song_image_player,imageURL);
         decodeBitmapNext.execute();
-        player.playUri(songUrl,0,0);
+        timeElapsed.setText("0:00");
+
+        if(isLastSong && !isRepeat) {
+            player.pause();
+            playPauseButton.setImageResource(android.R.drawable.ic_media_play);
+            isLastSong = false;
+        }
+        else {
+            player.playUri(songUrl,0,0);
+            updateProgressBar();
+        }
+
         /**/
 
     }
@@ -397,7 +474,7 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
             Log.d("MainActivity", "playback song position now " + songPosition);
             checkIfFirstOrLastSong(DataService.getInstance().getUserSongsList());
             Songs song = DataService.getInstance().getUserSongsList().get(songPosition);
-            updateSongDetails(song.getSongName(), song.getSongUri(), song.getArtistName(), song.getSongImageUrl(), song.getAlbumName());
+            updateSongDetails(song.getSongName(), song.getSongUri(), song.getArtistName(), song.getSongImageUrl(), song.getAlbumName(), Long.parseLong(song.getSongDuration()));
 
         } else if (playlistType.split(",")[0].equalsIgnoreCase("user_playlists")) {
             checkIfFirstOrLastSong(DataService.getInstance().getUserPlaylistsTracksMap()
@@ -405,26 +482,110 @@ public class SpotifyPlayerFragment extends Fragment implements View.OnClickListe
             Songs song = DataService.getInstance().getUserPlaylistsTracksMap()
                     .get(playlistType.split(",")[1]).get(songPosition);
 
-            updateSongDetails(song.getSongName(), song.getSongUri(), song.getArtistName(), song.getSongImageUrl(), song.getAlbumName());
+            updateSongDetails(song.getSongName(), song.getSongUri(), song.getArtistName(), song.getSongImageUrl(), song.getAlbumName(),Long.parseLong(song.getSongDuration()));
 
         } else {
-            checkIfFirstOrLastSong(DataService.getInstance().getUserPlaylistsTracksMap()
+            checkIfFirstOrLastSong(DataService.getInstance().getFeaturedPlaylistsTracksMap()
                     .get(playlistType.split(",")[1]));
-            Songs song = DataService.getInstance().getUserPlaylistsTracksMap()
+            Songs song = DataService.getInstance().getFeaturedPlaylistsTracksMap()
                     .get(playlistType.split(",")[1]).get(songPosition);
 
-            updateSongDetails(song.getSongName(), song.getSongUri(), song.getArtistName(), song.getSongImageUrl(), song.getAlbumName());
+            updateSongDetails(song.getSongName(), song.getSongUri(), song.getArtistName(), song.getSongImageUrl(), song.getAlbumName(),Long.parseLong(song.getSongDuration()));
 
         }
     }
     public void checkIfFirstOrLastSong(ArrayList<Songs> songsList){
-        if(isNext){
-            if(songPosition == songsList.size())
+
+            if(songPosition == songsList.size()) {
                 songPosition = 0;
-        }
-        if(isPrevious){
-            if(songPosition == -1)
-                songPosition = songsList.size() -1;
-        }
+                isLastSong = true;
+            } else if(songPosition == -1)
+                if(isRepeat)
+                    songPosition = songsList.size() -1;
+                else songPosition = 0;
+
+
     }
+    public int getRandomSongPosition(){
+        int randomPosition = 0;
+        Random random = new Random();
+        if (playlistType.contains("my_song"))
+
+            randomPosition = random.nextInt((DataService.getInstance().getUserSongsList().size() - 1) - 0 + 1);
+        else if (playlistType.split(",")[0].equalsIgnoreCase("user_playlists"))
+            randomPosition = random.nextInt((DataService.getInstance().getUserPlaylistsTracksMap()
+                    .get(playlistType.split(",")[1]).size() - 1) - 0 + 1);
+
+        else
+            randomPosition = random.nextInt((DataService.getInstance().getFeaturedPlaylistsTracksMap()
+                    .get(playlistType.split(",")[1]).size() - 1) - 0 + 1);
+
+
+        return randomPosition;
+    }
+    public String milliSecondsToTimer(long milliseconds){
+        String finalTimerString = "";
+        String secondsString = "";
+
+        // Convert total duration into time
+        int hours = (int)( milliseconds / (1000*60*60));
+        int minutes = (int)(milliseconds % (1000*60*60)) / (1000*60);
+        int seconds = (int) ((milliseconds % (1000*60*60)) % (1000*60) / 1000);
+        // Add hours if there
+        if(hours > 0){
+            finalTimerString = hours + ":";
+        }
+
+        // Prepending 0 to seconds if it is one digit
+        if(seconds < 10){
+            secondsString = "0" + seconds;
+        }else{
+            secondsString = "" + seconds;}
+
+        finalTimerString = finalTimerString + minutes + ":" + secondsString;
+
+        // return timer string
+        return finalTimerString;
+    }
+
+    private Runnable updateTimeTask = new Runnable(){
+        @Override
+        public void run() {
+           long totalDuration = duration;
+            long currentDuration = player.getPlaybackState().positionMs;
+            totalTime.setText(""+milliSecondsToTimer(totalDuration));
+            timeElapsed.setText(""+milliSecondsToTimer(currentDuration));
+            int progress = (int)(getProgressPercentage(currentDuration, totalDuration));
+            songProgress.setProgress(progress);
+            mHandler.postDelayed(this,100);
+        }
+
+
+    };
+
+    public void updateProgressBar() {
+        mHandler.postDelayed(updateTimeTask, 100);
+    }
+
+    public int getProgressPercentage(long currentDuration, long totalDuration){
+        Double percentage = (double) 0;
+
+        long currentSeconds = (int) (currentDuration / 1000);
+        long totalSeconds = (int) (totalDuration / 1000);
+
+        // calculating percentage
+        percentage =(((double)currentSeconds)/totalSeconds)*100;
+
+        // return percentage
+        return percentage.intValue();
+    }
+    public int progressToTimer(int progress, int totalDuration) {
+        int currentDuration = 0;
+        totalDuration = (int) (totalDuration / 1000);
+        currentDuration = (int) ((((double)progress) / 100) * totalDuration);
+
+        // return current duration in milliseconds
+        return currentDuration * 1000;
+    }
+
 }

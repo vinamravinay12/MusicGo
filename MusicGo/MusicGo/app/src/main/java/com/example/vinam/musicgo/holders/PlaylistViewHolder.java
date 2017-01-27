@@ -45,25 +45,30 @@ public class PlaylistViewHolder extends RecyclerView.ViewHolder {
         }
     }
     public Bitmap decodeUri(String imageUri){
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        Boolean scaleByHeight = Math.abs(options.outHeight - 100) >= Math.abs(options.outWidth - 100);
-        if (options.outHeight * options.outWidth * 2 >= 16384) {
-            double sampleSize = scaleByHeight ? options.outHeight / 1000 : options.outWidth / 1000;
-            options.inSampleSize = (int) Math.pow(2d, Math.floor(Math.log(sampleSize) / Math.log(2d)));
-        }
-        options.inJustDecodeBounds = false;
-        options.inTempStorage = new byte[16 * 1024];
-        InputStream in = null;
-        try {
-            in = new java.net.URL(imageUri).openStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        Bitmap output = BitmapFactory.decodeStream(in, new Rect(-1, -1, -1, -1), options);
-        Bitmap scaled = Bitmap.createScaledBitmap(output, 170, 170, true);
-        return scaled;
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            Boolean scaleByHeight = Math.abs(options.outHeight - 100) >= Math.abs(options.outWidth - 100);
+            if (options.outHeight * options.outWidth * 2 >= 16384) {
+                double sampleSize = scaleByHeight ? options.outHeight / 1000 : options.outWidth / 1000;
+                options.inSampleSize = (int) Math.pow(2d, Math.floor(Math.log(sampleSize) / Math.log(2d)));
+            }
+            options.inJustDecodeBounds = false;
+            options.inTempStorage = new byte[16 * 1024];
+            InputStream in = null;
+            Bitmap scaled = null;
+          if(!imageUri.equalsIgnoreCase("no image")) {
+              try {
+                  in = new java.net.URL(imageUri).openStream();
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+
+              Bitmap output = BitmapFactory.decodeStream(in, new Rect(-1, -1, -1, -1), options);
+              scaled = Bitmap.createScaledBitmap(output, 170, 170, true);
+          }
+            return scaled;
+
     }
 
 class DecodeBitMap extends AsyncTask<Void,Void,Bitmap> {
@@ -87,7 +92,9 @@ class DecodeBitMap extends AsyncTask<Void,Void,Bitmap> {
        // Log.d("ImageBitmap","modified width and height " + bitmap.getWidth()+" :: "+bitmap.getHeight());
         final ImageView imgView = mImageViewWeakReerence.get();
         if(imgView != null){
-            imgView.setImageBitmap(bitmap);
+            if(bitmap == null){
+                imgView.setImageResource(R.drawable.flightplanmusic);
+            } else imgView.setImageBitmap(bitmap);
         }
     }
 }

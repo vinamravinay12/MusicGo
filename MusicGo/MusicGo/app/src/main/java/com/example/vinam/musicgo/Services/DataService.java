@@ -65,17 +65,21 @@ public class DataService  {
 
     public void setUserPlaylistsTracksMap(String key,String songId,String songName,String albumName,String artistName,String imageUrl,String imageUrlSmall,String songDuration,String songUri){
          ArrayList<Songs>userPlaylistTracks = new ArrayList<>();
-        if(!userPlaylistsTracksMap.containsKey(key)){
-            userPlaylistTracks.add(new Songs(songId,songName,albumName,artistName,imageUrl,imageUrlSmall,songDuration,songUri));
+        if(songId.equalsIgnoreCase("empty")){
             userPlaylistsTracksMap.put(key,userPlaylistTracks);
-        }else{
-            userPlaylistTracks = userPlaylistsTracksMap.get(key);
-            if(!userPlaylistTracks.contains(songId)) {
-                Log.d("TAG","songId is not there");
+        }else {
+            if (!userPlaylistsTracksMap.containsKey(key)) {
                 userPlaylistTracks.add(new Songs(songId, songName, albumName, artistName, imageUrl, imageUrlSmall, songDuration, songUri));
-            }
+                userPlaylistsTracksMap.put(key, userPlaylistTracks);
+            } else {
+                userPlaylistTracks = userPlaylistsTracksMap.get(key);
+                if (!userPlaylistTracks.contains(songId)) {
+                    Log.d("TAG", "songId is not there");
+                    userPlaylistTracks.add(new Songs(songId, songName, albumName, artistName, imageUrl, imageUrlSmall, songDuration, songUri));
+                }
 
-            userPlaylistsTracksMap.put(key,userPlaylistTracks);
+                userPlaylistsTracksMap.put(key, userPlaylistTracks);
+            }
         }
     }
 
