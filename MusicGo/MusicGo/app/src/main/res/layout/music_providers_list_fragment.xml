@@ -31,14 +31,16 @@
 
                 android:background="@drawable/btn_music_provider_background"
 
+                android:clickable="true"
                 android:drawableStart="@drawable/ic_spotify"
-                android:drawableLeft="@drawable/ic_spotify"
+
                 android:fontFamily="@font/roboto"
                 android:text="@string/spotify_text"
                 android:textAllCaps="false"
                 android:textColor="@android:color/background_light"
                 android:textSize="@dimen/sp_48"
-                android:textStyle="normal" />
+                android:textStyle="normal"
+                android:focusable="true" />
 
             <Button
                 android:id="@+id/connect_apple_music"
