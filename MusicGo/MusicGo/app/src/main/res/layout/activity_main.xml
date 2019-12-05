@@ -7,13 +7,11 @@
     tools:context=".activities.MainActivity">
 
     <FrameLayout
-        android:layout_width="409dp"
-        android:layout_height="729dp"
         android:id="@+id/main_frame"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="420dp"
+        android:layout_height="526dp"
+        tools:layout_editor_absoluteX="1dp"
+        tools:layout_editor_absoluteY="1dp">
 
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,4 +12,14 @@
     <string name="error_player">There was an error initializing the YouTubePlayer (%1$s)</string>
     <string name="spotify_text">Spotify</string>
     <string name="apple_music_name_text">Apple Music</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="title_home">Home</string>
+    <string name="mgo_title_playlists">Playlists</string>
+    <string name="mgo_title_profile">Profile</string>
+    <string name="mgo_title_playlist_details">%s Playlist</string>
+    <string name="mgo_title_player">Player</string>
+    <string name="mgo_create_playlist">Create Playlist</string>
+    <string name="title_activity_new_home">NewHomeActivity</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 </resources>

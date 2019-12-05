@@ -1,8 +1,8 @@
 package com.example.vinam.musicgo.fragments
 
+import android.content.Intent
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +14,17 @@ import butterknife.OnClick
 
 import com.example.vinam.musicgo.R
 import com.example.vinam.musicgo.spotifymodule.SpotifyConstants
-import com.spotify.android.appremote.api.ConnectionParams
-import com.spotify.android.appremote.api.Connector
-import com.spotify.android.appremote.api.SpotifyAppRemote
+import com.google.android.material.snackbar.Snackbar
+import com.spotify.sdk.android.authentication.AuthenticationClient
+import com.spotify.sdk.android.authentication.AuthenticationRequest
+import com.spotify.sdk.android.authentication.AuthenticationResponse
 
-class MusicProvidersListFragment : Fragment(), Connector.ConnectionListener, View.OnClickListener {
+class MusicProvidersListFragment : Fragment(), View.OnClickListener {
 
     companion object {
         fun newInstance() = MusicProvidersListFragment()
     }
+
 
     @BindView(R.id.connect_spotify) lateinit var spotifyBtn : Button;
     private lateinit var viewModel: MusicProvidersListViewModel
@@ -45,10 +47,12 @@ class MusicProvidersListFragment : Fragment(), Connector.ConnectionListener, Vie
 
     @OnClick(R.id.connect_spotify)
     fun connectToSpotify() {
-        val connectionParams : ConnectionParams =  ConnectionParams.Builder(getString(R.string.SPOTIFY_CLIENT_ID)).setRedirectUri(SpotifyConstants.REDIRECT_URI).showAuthView(true).build()
+        val builder = AuthenticationRequest.Builder(getString(R.string.SPOTIFY_CLIENT_ID),AuthenticationResponse.Type.TOKEN,SpotifyConstants.REDIRECT_URI)
+        builder.setScopes(arrayOf("streaming"))
+        val authenticationRequest = builder.build()
+        AuthenticationClient.openLoginActivity(activity,SpotifyConstants.SPOTIFY_AUTHENTICATION_REQUEST_ID,authenticationRequest)
 
 
-        SpotifyAppRemote.connect(context,connectionParams,this)
     }
 
 
@@ -57,18 +61,26 @@ class MusicProvidersListFragment : Fragment(), Connector.ConnectionListener, Vie
     }
 
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+        if (requestCode == SpotifyConstants.SPOTIFY_AUTHENTICATION_REQUEST_ID) {
+
+            val response = AuthenticationClient.getResponse(resultCode,data)
+
+            when(response.type) {
+                AuthenticationResponse.Type.TOKEN -> viewModel.accessToken = response.accessToken
+                AuthenticationResponse.Type.ERROR -> showErrorMessage(response.error)
+            }
 
 
-
-
-    override fun onFailure(throwable: Throwable?) {
-        Log.d("TAG","error: " + (throwable?.message ?: "Error"))
+        }
     }
 
-    override fun onConnected(appRemote:  SpotifyAppRemote?) {
-        viewModel.spotifyAppRemote = appRemote
-        Log.d("TAG","Connected")
+    private fun showErrorMessage(errorMessage : String) {
+        view?.let { Snackbar.make(it, errorMessage, Snackbar.LENGTH_LONG) }?.show()
 
     }
+
+
 
 }

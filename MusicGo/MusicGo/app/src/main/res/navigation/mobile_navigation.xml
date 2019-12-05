@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.example.vinam.musicgo.fragments.MusicProvidersListFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/music_providers_list_fragment" >
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_dashboard"
+            app:destination="@id/navigation_dashboard" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_playlists"
+        android:name="com.example.vinam.musicgo.fragments.PlaylistsFragment"
+        android:label="@string/mgo_title_playlists"
+        tools:layout="@layout/fragment_playlists" >
+        <action
+            android:id="@+id/action_navigation_playlists_to_navigation_playlist_details"
+            app:destination="@id/navigation_playlist_details"
+            app:enterAnim="@anim/nav_default_pop_enter_anim"
+            app:exitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_navigation_playlists_to_navigation_create_playlist"
+            app:destination="@id/navigation_create_playlist" />
+    </fragment>
+
+    
+
+    <fragment
+        android:id="@+id/navigation_playlist_details"
+        android:name="com.example.vinam.musicgo.fragments.PlaylistDetailsFragment"
+        android:label="@string/mgo_title_playlist_details"
+        tools:layout="@layout/playlist_details_fragment">
+        <action
+            android:id="@+id/action_navigation_playlist_details_to_navigation_music_player"
+            app:destination="@id/navigation_music_player" />
+    </fragment>
+    <fragment
+        android:id="@+id/navigation_music_player"
+        android:name="com.example.vinam.musicgo.fragments.MusicPlayerFragment"
+        android:label="@string/mgo_title_player"
+        tools:layout="@layout/music_player_fragment" />
+
+    <fragment
+        android:id="@+id/navigation_create_playlist"
+        android:name="com.example.vinam.musicgo.fragments.CreatePlaylistFragment"
+        android:label="@string/mgo_create_playlist"
+        tools:layout="@layout/create_playlist_fragment" />
+
+</navigation>

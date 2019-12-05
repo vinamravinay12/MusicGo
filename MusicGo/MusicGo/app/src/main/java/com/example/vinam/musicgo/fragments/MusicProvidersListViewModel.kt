@@ -5,6 +5,6 @@ import com.spotify.android.appremote.api.SpotifyAppRemote
 
 class MusicProvidersListViewModel : ViewModel() {
 
-    var spotifyAppRemote : SpotifyAppRemote? = null
+    var accessToken : String? = null
 
 }
